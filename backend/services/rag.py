@@ -1,4 +1,3 @@
-
 import os
 import uuid
 from langchain_google_genai import GoogleGenerativeAIEmbeddings, ChatGoogleGenerativeAI
@@ -18,10 +17,7 @@ qdrant_client = QdrantClient(url=QDRANT_URL)
 def get_models():
     if not os.getenv("GOOGLE_API_KEY"):
          raise Exception("GOOGLE_API_KEY not set")
-    # Using 'models/text-embedding-004' for better rate limits and 768 dimensions
     embeddings = GoogleGenerativeAIEmbeddings(model="models/text-embedding-004")
-    # User requested gemini-2.5-flash
-    # chat = ChatGoogleGenerativeAI(model="gemini-2.0-flash-exp") 
     chat = ChatGoogleGenerativeAI(model="gemini-2.5-flash")
     return embeddings, chat
 
@@ -29,11 +25,9 @@ async def process_video(data: dict):
     video_id = data['video_id']
     text = data['text']
     
-    # Split
     splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
     docs = splitter.create_documents([text], metadatas=[{"video_id": video_id}])
     
-    # Embed
     embeddings_model, _ = get_models()
     embeddings = embeddings_model.embed_documents([d.page_content for d in docs])
     
@@ -42,7 +36,6 @@ async def process_video(data: dict):
         
     dim = len(embeddings[0])
     
-    # Check if exists and Create Collection if needed
     collections = qdrant_client.get_collections()
     if not any(c.name == COLLECTION_NAME for c in collections.collections):
         qdrant_client.create_collection(
@@ -50,7 +43,6 @@ async def process_video(data: dict):
             vectors_config=VectorParams(size=dim, distance=Distance.COSINE),
         )
     
-    # Check for existing points
     count = qdrant_client.count(
         collection_name=COLLECTION_NAME,
         count_filter={"must": [{"key": "metadata.video_id", "match": {"value": video_id}}]}
@@ -59,7 +51,6 @@ async def process_video(data: dict):
         return {"status": "exists", "video_id": video_id}
 
     
-    # Upsert
     points = []
     for i, (doc, vector) in enumerate(zip(docs, embeddings)):
         points.append(PointStruct(
@@ -79,13 +70,10 @@ async def process_video(data: dict):
 async def chat_with_video(video_id: str, messages: list):
     embeddings_model, chat_model = get_models()
     
-    # Get last user message
     query = messages[-1]['content']
     
-    # Embed query
     query_vector = embeddings_model.embed_query(query)
     
-    # Search
     search_result = qdrant_client.query_points(
         collection_name=COLLECTION_NAME,
         query=query_vector,
@@ -95,7 +83,6 @@ async def chat_with_video(video_id: str, messages: list):
     
     context = "\n\n".join([hit.payload['text'] for hit in search_result])
     
-    # Generate
     template = """You are a chill friend who has just watched this YouTube video. 
 Answer the question in a normal, conversational tone, like you're talking to a friend. 
 Be direct and helpful, but don't be over-enthusiastic or dramatic. Keep it grounded.

@@ -1,6 +1,8 @@
-
 import { useState, useRef, useEffect } from 'react';
-import { Send, Youtube, MessageSquare, Loader2, Sparkles, StopCircle, ArrowRight, PlayCircle, Bot, User } from 'lucide-react';
+import {
+  Send, Youtube, MessageSquare, Loader2, Sparkles,
+  ArrowRight, Bot, User, Link2, RefreshCw, Zap, Play
+} from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
@@ -48,7 +50,7 @@ export default function App() {
       if (!res.ok) throw new Error(data.detail || 'Failed to process video');
 
       setVideoId(data.video_id);
-      setMessages([{ role: 'model', content: "I've watched the video! Ask me anything about it." }]);
+      setMessages([{ role: 'model', content: "Connection established. I've analyzed the visual and audio data. Awaiting queries." }]);
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -81,204 +83,192 @@ export default function App() {
 
     } catch (err) {
       console.error(err);
-      setError("Failed to get response. Please try again.");
+      setError("Transmission failed. Please retry.");
     } finally {
       setChatLoading(false);
     }
   };
 
   return (
-    <div className="flex h-screen w-full bg-background text-foreground overflow-hidden font-sans selection:bg-primary/20">
+    <div className="flex flex-col md:flex-row h-[100dvh] w-full bg-neutral-950 text-neutral-100 font-sans overflow-hidden">
 
-      {/* Left Sidebar / Video Info */}
-      <div className="w-[400px] flex flex-col border-r border-border/40 bg-card/30 backdrop-blur-xl relative z-10">
+      <div className="fixed top-[-20%] left-[-10%] w-[50%] h-[50%] bg-red-900/20 rounded-full blur-[120px] pointer-events-none" />
+      <div className="fixed bottom-[-20%] right-[-10%] w-[50%] h-[50%] bg-red-800/10 rounded-full blur-[120px] pointer-events-none" />
 
-        {/* Header */}
-        <div className="p-6 border-b border-border/40 flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-red-600 to-red-800 flex items-center justify-center shadow-lg shadow-red-900/20">
-            <Youtube className="w-5 h-5 text-white" fill="white" />
-          </div>
-          <div>
-            <h1 className="font-bold text-lg tracking-tight">ChatWithYT</h1>
-            <p className="text-xs text-muted-foreground font-medium">AI Video Assistant</p>
-          </div>
-        </div>
+      <div className={cn(
+        "relative flex flex-col transition-all duration-700 ease-[cubic-bezier(0.25,1,0.5,1)] border-b md:border-b-0 md:border-r border-white/5 bg-neutral-900/50 backdrop-blur-sm",
+        videoId ? "h-[35%] md:h-full md:w-1/2" : "h-full w-full justify-center items-center z-20"
+      )}>
 
-        {/* Input & Video Area */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-6">
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground ml-1">Video Source</label>
-              <div className="relative group">
-                <input
-                  type="text"
-                  value={url}
-                  onChange={(e) => setUrl(e.target.value)}
-                  placeholder="Paste YouTube URL..."
-                  className="w-full bg-secondary/50 border border-border/50 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary/50 focus:border-primary/50 focus:outline-none transition-all placeholder:text-muted-foreground/50 hover:bg-secondary/80"
-                  disabled={loading || !!videoId}
-                />
-                <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-primary/10 to-purple-500/10 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-500" />
+        {!videoId ? (
+          <div className="w-full max-w-xl px-6 md:px-12 flex flex-col items-center text-center animate-in fade-in zoom-in-95 duration-700">
+
+            <div className="mb-8 relative group">
+              <div className="absolute inset-0 bg-red-600 blur-[40px] opacity-20 group-hover:opacity-40 transition-opacity duration-700" />
+              <div className="relative w-24 h-24 bg-gradient-to-b from-neutral-800 to-neutral-950 rounded-3xl border border-white/10 flex items-center justify-center shadow-2xl">
+                <Youtube className="w-10 h-10 text-red-500" />
               </div>
             </div>
 
-            {!videoId && (
-              <button
-                onClick={handleIngest}
-                disabled={loading || !url}
-                className="w-full h-12 bg-primary hover:bg-primary/90 text-primary-foreground font-medium rounded-xl transition-all shadow-lg shadow-primary/25 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 group relative overflow-hidden"
-              >
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
-                {loading ? (
-                  <>
-                    <Loader2 className="animate-spin w-4 h-4" />
-                    <span>Analyzing Video...</span>
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="w-4 h-4 text-primary-foreground/80" fill="currentColor" />
-                    <span>Start Chatting</span>
-                    <ArrowRight className="w-4 h-4 opacity-50 group-hover:translate-x-1 transition-transform" />
-                  </>
-                )}
-              </button>
-            )}
+            <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-white mb-4">
+              Chat<span className="text-red-500">Tube</span>
+            </h1>
+            <p className="text-neutral-400 text-lg mb-10 max-w-md mx-auto leading-relaxed">
+              Connect a video stream to initialize neural analysis and chat with the content in real-time.
+            </p>
 
-            {error && (
-              <div className="p-4 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive text-sm flex items-start gap-3">
-                <StopCircle className="w-5 h-5 shrink-0 mt-0.5" />
-                <p>{error}</p>
-              </div>
-            )}
-          </div>
-
-          {videoId && (
-            <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <div className="rounded-2xl overflow-hidden border border-border/40 shadow-2xl shadow-black/50 bg-black aspect-video relative group">
-                <div className="absolute inset-0 w-full h-full bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity z-10 pointer-events-none" />
-                <iframe
-                  width="100%"
-                  height="100%"
-                  src={`https://www.youtube.com/embed/${videoId}`}
-                  title="YouTube video player"
-                  frameBorder="0"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                  className="relative z-0"
-                />
-              </div>
-
-              <div className="flex items-center justify-between px-1">
-                <div className="flex items-center gap-2 text-green-400 text-sm font-medium">
-                  <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                  Video Connected
+            <div className="w-full relative group">
+              <div className="absolute -inset-1 bg-gradient-to-r from-red-600 via-orange-600 to-red-900 rounded-2xl opacity-30 blur group-hover:opacity-60 transition duration-1000"></div>
+              <div className="relative bg-neutral-900 border border-white/10 rounded-xl p-2 flex flex-col md:flex-row items-center gap-2 shadow-2xl">
+                <div className="flex-1 w-full flex items-center px-4 h-14">
+                  <Link2 className="w-5 h-5 text-neutral-500 mr-3 shrink-0" />
+                  <input
+                    type="text"
+                    value={url}
+                    onChange={(e) => setUrl(e.target.value)}
+                    placeholder="Paste YouTube URL..."
+                    className="w-full bg-transparent border-none focus:ring-0 text-white placeholder:text-neutral-600 h-full"
+                    disabled={loading}
+                  />
                 </div>
                 <button
-                  onClick={() => { setVideoId(null); setUrl(''); setMessages([]); }}
-                  className="text-xs text-muted-foreground hover:text-white transition-colors underline decoration-border hover:decoration-white underline-offset-4"
+                  onClick={handleIngest}
+                  disabled={loading || !url}
+                  className="w-full md:w-auto h-12 px-8 bg-red-600 hover:bg-red-500 text-white font-medium rounded-lg transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_0_20px_-5px_rgba(220,38,38,0.5)] hover:shadow-[0_0_25px_-5px_rgba(220,38,38,0.7)]"
                 >
-                  Change Video
+                  {loading ? <Loader2 className="animate-spin w-5 h-5" /> : <Sparkles className="w-5 h-5" />}
+                  <span>{loading ? "Analyzing..." : "Analyze"}</span>
                 </button>
               </div>
             </div>
-          )}
-        </div>
 
-        {/* Footer Info */}
-        <div className="p-6 border-t border-border/40 text-center">
-          <p className="text-xs text-muted-foreground/60">Powered by Gemini 1.5 Flash & Qdrant</p>
-        </div>
+            {error && (
+              <div className="mt-6 p-3 bg-red-950/30 border border-red-500/20 text-red-400 text-sm rounded-lg flex items-center gap-2 animate-in slide-in-from-top-2">
+                <div className="w-1.5 h-1.5 rounded-full bg-red-500" />
+                {error}
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="w-full h-full relative bg-black group">
+            <iframe
+              width="100%"
+              height="100%"
+              src={`https://www.youtube.com/embed/${videoId}?theme=dark&autoplay=1&rel=0`}
+              title="YouTube video player"
+              frameBorder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+              className="w-full h-full object-contain md:object-cover"
+            />
+
+            <div className="absolute top-0 left-0 right-0 p-4 flex justify-between items-start bg-gradient-to-b from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+              <div className="flex items-center gap-2 px-3 py-1 bg-black/50 backdrop-blur-md rounded-full border border-white/10">
+                <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+                <span className="text-[10px] font-bold tracking-widest text-white/80">LIVE CONNECTION</span>
+              </div>
+
+              <button
+                onClick={() => { setVideoId(null); setUrl(''); setMessages([]); }}
+                className="p-2 bg-black/50 backdrop-blur-md rounded-full border border-white/10 hover:bg-red-600 hover:border-red-600 transition-colors text-white"
+                title="Disconnect"
+              >
+                <RefreshCw className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* Right Chat Area */}
-      <div className="flex-1 flex flex-col h-full bg-background/50 relative">
-        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 pointer-events-none mix-blend-overlay"></div>
+      <div className={cn(
+        "flex flex-col min-h-0 relative z-10 transition-all duration-700 bg-neutral-950/80",
+        videoId ? "flex-1 md:w-1/2" : "hidden"
+      )}>
 
-        {/* Chat Messages */}
-        <div className="flex-1 overflow-y-auto p-8 relative z-0">
-          <div className="max-w-3xl mx-auto space-y-6 pb-4">
-            {messages.length === 0 && (
-              <div className="h-[60vh] flex flex-col items-center justify-center text-muted-foreground/30 animate-in fade-in duration-1000">
-                <div className="w-20 h-20 rounded-3xl bg-secondary/50 flex items-center justify-center mb-6 ring-1 ring-white/5">
-                  <MessageSquare className="w-10 h-10" />
-                </div>
-                <h3 className="text-xl font-medium text-foreground mb-2">Ready to chat?</h3>
-                <p className="text-sm max-w-xs text-center">Load a video on the left to start asking questions about its content.</p>
-              </div>
-            )}
+        <div className="absolute inset-0 opacity-[0.03] pointer-events-none bg-[url('https://grainy-gradients.vercel.app/noise.svg')]" />
 
-            {messages.map((msg, idx) => (
-              <div key={idx} className={cn(
-                "flex gap-4 animate-in fade-in slide-in-from-bottom-2 duration-300",
-                msg.role === 'user' ? "justify-end" : "justify-start"
-              )}>
-                {msg.role === 'model' && (
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-primary to-purple-500 flex items-center justify-center shrink-0 shadow-lg shadow-primary/20 mt-1">
-                    <Bot className="w-4 h-4 text-white" />
-                  </div>
-                )}
-
-                <div className={cn(
-                  "max-w-[80%] rounded-2xl px-5 py-3.5 shadow-sm text-sm leading-relaxed",
-                  msg.role === 'user'
-                    ? "bg-primary text-primary-foreground rounded-tr-sm"
-                    : "bg-card border border-border/50 text-card-foreground rounded-tl-sm shadow-black/5"
-                )}>
-                  <div className="prose prose-invert prose-sm max-w-none">
-                    <ReactMarkdown>{msg.content}</ReactMarkdown>
-                  </div>
-                </div>
-
-                {msg.role === 'user' && (
-                  <div className="w-8 h-8 rounded-full bg-secondary border border-border flex items-center justify-center shrink-0 mt-1">
-                    <User className="w-4 h-4 text-muted-foreground" />
-                  </div>
-                )}
-              </div>
-            ))}
-
-            {chatLoading && (
-              <div className="flex gap-4 animate-in fade-in slide-in-from-bottom-2">
-                <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-primary to-purple-500 flex items-center justify-center shrink-0 mt-1">
-                  <Loader2 className="w-4 h-4 text-white animate-spin" />
-                </div>
-                <div className="bg-card border border-border/50 rounded-2xl rounded-tl-sm px-5 py-4 flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 bg-primary/50 rounded-full animate-bounce [animation-delay:-0.3s]"></span>
-                  <span className="w-1.5 h-1.5 bg-primary/50 rounded-full animate-bounce [animation-delay:-0.15s]"></span>
-                  <span className="w-1.5 h-1.5 bg-primary/50 rounded-full animate-bounce"></span>
-                </div>
-              </div>
-            )}
-            <div ref={messagesEndRef} />
+        <div className="h-14 border-b border-white/5 flex items-center px-6 justify-between bg-neutral-900/50 backdrop-blur-xl shrink-0">
+          <div className="flex items-center gap-2">
+            <Bot className="w-5 h-5 text-red-500" />
+            <span className="text-sm font-medium text-neutral-200">AI Assistant</span>
+          </div>
+          <div className="flex items-center gap-2 text-xs text-neutral-500">
+            <span className="w-1.5 h-1.5 bg-green-500 rounded-full" />
+            Online
           </div>
         </div>
 
-        {/* Input Area */}
-        <div className="p-6 border-t border-border/40 bg-background/80 backdrop-blur-md relative z-10">
-          <div className="max-w-3xl mx-auto relative">
+        <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6 scrollbar-thin scrollbar-thumb-neutral-800 scrollbar-track-transparent">
+          {messages.length === 0 && (
+            <div className="h-full flex flex-col items-center justify-center text-neutral-700 space-y-4">
+              <MessageSquare className="w-12 h-12 opacity-20" />
+              <p className="text-sm font-mono opacity-50">Awaiting your input...</p>
+            </div>
+          )}
+
+          {messages.map((msg, idx) => (
+            <div key={idx} className={cn(
+              "flex gap-4 max-w-2xl mx-auto animate-in fade-in slide-in-from-bottom-2 duration-300",
+              msg.role === 'user' ? "justify-end" : "justify-start"
+            )}>
+              {msg.role === 'model' && (
+                <div className="w-8 h-8 rounded-lg bg-neutral-800 border border-white/5 flex items-center justify-center shrink-0 shadow-lg">
+                  <Bot className="w-4 h-4 text-red-500" />
+                </div>
+              )}
+
+              <div className={cn(
+                "px-5 py-3.5 text-sm leading-relaxed shadow-md max-w-[85%]",
+                msg.role === 'user'
+                  ? "bg-gradient-to-br from-red-600 to-red-700 text-white rounded-2xl rounded-tr-sm border border-red-500/20"
+                  : "bg-neutral-900/80 border border-white/10 text-neutral-300 rounded-2xl rounded-tl-sm backdrop-blur-sm"
+              )}>
+                <div className="prose prose-invert prose-sm max-w-none prose-p:my-1 prose-strong:text-white prose-a:text-red-300">
+                  <ReactMarkdown>{msg.content}</ReactMarkdown>
+                </div>
+              </div>
+            </div>
+          ))}
+
+          {chatLoading && (
+            <div className="flex gap-4 max-w-2xl mx-auto">
+              <div className="w-8 h-8 rounded-lg bg-neutral-800 border border-white/5 flex items-center justify-center shrink-0">
+                <Loader2 className="w-4 h-4 text-red-500 animate-spin" />
+              </div>
+              <div className="flex items-center gap-1.5 px-4 h-10 bg-neutral-900/50 rounded-2xl rounded-tl-sm border border-white/5">
+                <span className="w-1 h-1 bg-red-500 rounded-full animate-bounce [animation-delay:-0.3s]" />
+                <span className="w-1 h-1 bg-red-500 rounded-full animate-bounce [animation-delay:-0.15s]" />
+                <span className="w-1 h-1 bg-red-500 rounded-full animate-bounce" />
+              </div>
+            </div>
+          )}
+          <div ref={messagesEndRef} className="h-2" />
+        </div>
+
+        <div className="p-4 md:p-6 bg-neutral-900/80 backdrop-blur-xl border-t border-white/5 shrink-0">
+          <div className="max-w-2xl mx-auto relative flex items-center gap-2">
             <input
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && handleSend()}
-              placeholder={videoId ? "Ask a question about the video..." : "Connect a video first..."}
-              disabled={!videoId || chatLoading}
-              className="w-full bg-secondary/50 border border-border/50 rounded-2xl pl-6 pr-14 py-4 focus:ring-2 focus:ring-primary/50 focus:border-primary/50 focus:outline-none transition-all shadow-lg shadow-black/5 disabled:opacity-50 disabled:cursor-not-allowed placeholder:text-muted-foreground/50 text-base"
+              placeholder="Ask a question about the video..."
+              disabled={chatLoading}
+              className="w-full bg-neutral-950 border border-white/10 rounded-xl px-5 py-4 pr-14 focus:outline-none focus:ring-1 focus:ring-red-500/50 focus:border-red-500/50 transition-all text-sm text-white placeholder:text-neutral-600 shadow-inner"
             />
-            <div className="absolute right-2 top-2 bottom-2">
-              <button
-                onClick={handleSend}
-                disabled={!videoId || chatLoading || !input.trim()}
-                className="h-full aspect-square bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl flex items-center justify-center transition-all disabled:opacity-0 disabled:scale-90 shadow-md shadow-primary/25 hover:scale-105 active:scale-95"
-              >
-                <Send className="w-5 h-5 ml-0.5" />
-              </button>
-            </div>
+            <button
+              onClick={handleSend}
+              disabled={chatLoading || !input.trim()}
+              className="absolute right-2 p-2 bg-red-600 hover:bg-red-500 text-white rounded-lg transition-all disabled:opacity-0 disabled:scale-75 shadow-lg shadow-red-900/20"
+            >
+              <ArrowRight className="w-5 h-5" />
+            </button>
           </div>
-          <p className="text-center text-[10px] text-muted-foreground/40 mt-3">
-            AI may display inaccurate info, including about people, so double-check its responses.
-          </p>
+          <div className="text-center mt-2">
+            <span className="text-[10px] text-neutral-600 uppercase tracking-widest font-medium">Neural Link Active</span>
+          </div>
         </div>
+
       </div>
     </div>
   );
