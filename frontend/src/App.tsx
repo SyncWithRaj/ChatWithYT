@@ -11,6 +11,8 @@ function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
+
+
 interface Message {
   role: 'user' | 'model';
   content: string;
